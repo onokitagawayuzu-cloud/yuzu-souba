@@ -1,0 +1,48 @@
+name: データ更新とサイト公開
+
+on:
+  schedule:
+    - cron: "0 23 * * *"  # 毎日 8:00 JST
+    - cron: "0 3 * * *"   # 毎日12:00 JST (シティ青果PDFは10時ごろ公開のため)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: update-and-deploy
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: データ取得
+        run: python scripts/update_all.py --no-open
+      - name: データをコミット
+        run: |
+          git config user.name "yuzu-souba-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data web/data.js
+          git diff --cached --quiet || git commit -m "データ更新 $(TZ=Asia/Tokyo date +%F_%H:%M)"
+          git push
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+
+  deploy:
+    needs: update
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

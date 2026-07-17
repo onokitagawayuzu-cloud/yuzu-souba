@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>柚子 市場単価ダッシュボード</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>柚子 市場単価ダッシュボード</h1>
+    <p class="sub">東京・大阪・京都・名古屋の中央卸売市場 <span id="updated"></span></p>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="daily">日々の単価(大阪・豊洲)</button>
+    <button class="tab" data-tab="monthly">月ごとの比較(4都市)</button>
+  </nav>
+
+  <!-- ================= 日次タブ ================= -->
+  <section id="tab-daily" class="panel active">
+    <div class="card">
+      <h2>ゆず 日別単価 <span class="unit">(円/kg)</span></h2>
+      <p class="note">大阪(本場・東部)は産地別データを数量で重みづけした平均。東京・豊洲は東京シティ青果の相場表(高知産などのパック品、kg換算)。
+      豊洲は秀品パックの建値のため大阪の平均より高く出ます。いまの時期はハウス栽培の青ゆずが中心です。</p>
+      <div id="chart-daily" class="chart"></div>
+      <div id="legend-daily" class="legend"></div>
+    </div>
+    <div class="card">
+      <h2>直近の内訳 <span class="unit">(産地別)</span></h2>
+      <div class="tablewrap"><table id="table-daily"></table></div>
+    </div>
+  </section>
+
+  <!-- ================= 月次タブ ================= -->
+  <section id="tab-monthly" class="panel">
+    <div class="card">
+      <h2>月平均単価の推移 <span class="unit">(円/kg)</span></h2>
+      <p class="note">各市場の公式統計(確定値)。公表まで1.5〜2ヶ月かかるため、最新月は市場によって異なります。</p>
+      <div id="chart-monthly" class="chart"></div>
+      <div id="legend-monthly" class="legend"></div>
+    </div>
+    <div class="card">
+      <h2>取扱数量の推移 <span class="unit">(kg/月)</span></h2>
+      <div id="chart-qty" class="chart"></div>
+      <div id="legend-qty" class="legend"></div>
+    </div>
+    <div class="card">
+      <h2>最新月の状況</h2>
+      <div class="tablewrap"><table id="table-monthly"></table></div>
+    </div>
+  </section>
+
+  <footer>
+    <p>出所: 東京都中央卸売市場「市場統計情報明細データ」/ 大阪市中央卸売市場「市況情報」/
+       京都市中央卸売市場第一市場「月報」/ 名古屋市中央卸売市場「月別取扱高」。
+       単価はいずれも卸売価格(消費税込みの市場もあり)。</p>
+  </footer>
+</div>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
