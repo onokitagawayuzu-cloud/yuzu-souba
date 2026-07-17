@@ -4,7 +4,7 @@ import json
 import sys
 from datetime import datetime
 
-from common import DATA_DIR, WEB_DIR, load_json
+from common import DATA_DIR, JST, WEB_DIR, load_json
 
 
 def main():
@@ -15,7 +15,7 @@ def main():
         "monthly": monthly,
         "osaka_daily": daily,
         "tokyo_seika_daily": seika,
-        "updated": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "updated": datetime.now(JST).strftime("%Y-%m-%d %H:%M"),
     }
     out = WEB_DIR / "data.js"
     out.write_text("window.YUZU_DATA = " + json.dumps(payload, ensure_ascii=False) + ";\n",
