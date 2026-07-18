@@ -18,6 +18,7 @@
   <nav class="tabs">
     <button class="tab active" data-tab="daily">日々の単価(大阪・豊洲)</button>
     <button class="tab" data-tab="monthly">月ごとの比較(3都市)</button>
+    <button class="tab" data-tab="hantei">出荷判断(黄玉)</button>
   </nav>
 
   <!-- ================= 日次タブ ================= -->
@@ -67,6 +68,34 @@
     <div class="card">
       <h2>最新月の状況</h2>
       <div class="tablewrap"><table id="table-monthly"></table></div>
+    </div>
+  </section>
+
+  <!-- ================= 出荷判断タブ(黄玉・冬至玉) ================= -->
+  <section id="tab-hantei" class="panel">
+    <div class="card">
+      <h2>黄玉・冬至玉の出荷判断</h2>
+      <p class="note">市場の実勢単価から手数料と送料を引いた「手取り」を計算し、どの市場・どの月に出すのが有利かを過去シーズンの実績で比べます。
+      A品の直販(150円/玉)との比較も表示します。数字は変更するとその場で再計算され、この端末に保存されます。</p>
+      <div class="settings">
+        <label>1箱の玉数 <input type="number" id="set-tama" min="5" max="30" step="1"></label>
+        <label>1箱の重さ(kg) <input type="number" id="set-kg" min="1" max="10" step="0.5"></label>
+        <label>市場手数料(%) <input type="number" id="set-fee" min="0" max="20" step="0.5"></label>
+        <label>送料など経費(円/箱) <input type="number" id="set-ship" min="0" max="3000" step="50"></label>
+      </div>
+    </div>
+    <div class="card">
+      <h2>おすすめ <span class="unit">(過去シーズンの実績から)</span></h2>
+      <div id="hantei-reco"></div>
+    </div>
+    <div class="card">
+      <h2>市場×月別の手取り試算 <span class="unit">(1玉あたり)</span></h2>
+      <div class="tablewrap"><table id="hantei-table"></table></div>
+      <p class="note" id="hantei-note"></p>
+    </div>
+    <div class="card">
+      <h2>いまの実勢での手取り <span class="unit">(シーズン中のみ)</span></h2>
+      <div id="hantei-live"></div>
     </div>
   </section>
 

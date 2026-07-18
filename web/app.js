@@ -361,6 +361,180 @@
     renderLegend(document.getElementById("legend-chusei"), series);
   })();
 
+  /* ---------- 出荷判断タブ(黄玉・冬至玉) ---------- */
+  (function hantei() {
+    const table = document.getElementById("hantei-table");
+    if (!table) return;
+    const M = D.monthly || {};
+    const MARKETS = [
+      { key: "tokyo", label: "東京" },
+      { key: "osaka", label: "大阪市" },
+      { key: "kyoto", label: "京都" },
+    ];
+    // 黄玉・冬至玉の対象月(出荷期10月末〜、貯蔵限界1月末)
+    const MONTHS = [
+      { m: 10, label: "10月(色付き〜)" },
+      { m: 11, label: "11月(黄玉フレッシュ)" },
+      { m: 12, label: "12月(冬至・要注意)" },
+      { m: 1, label: "1月(貯蔵玉)" },
+    ];
+    // 経費既定値: 1.5kg箱×5箱まとめ発送で段ボール+送料計1,200円 → 240円/箱
+    const DEFAULTS = { tama: 12, kg: 1.5, fee: 8, ship: 240 };
+    const LS_KEY = "yuzu-hantei-settings";
+
+    const loadSettings = () => {
+      try {
+        return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(LS_KEY) || "{}") };
+      } catch (e) { return { ...DEFAULTS }; }
+    };
+    const inputs = {
+      tama: document.getElementById("set-tama"),
+      kg: document.getElementById("set-kg"),
+      fee: document.getElementById("set-fee"),
+      ship: document.getElementById("set-ship"),
+    };
+
+    // 過去シーズンの月別単価一覧(円/kg)を返す: {"tokyo": {11: [1082, 930], ...}, ...}
+    // 値は古いシーズン→新しいシーズンの順
+    function seasonPrices() {
+      const out = {};
+      const thisYear = new Date().getFullYear();
+      MARKETS.forEach((mk) => {
+        out[mk.key] = {};
+        MONTHS.forEach(({ m }) => {
+          const vals = [];
+          for (let seasonY = 2024; seasonY <= thisYear; seasonY++) {
+            const y = m >= 10 ? seasonY : seasonY + 1;  // 1月は翌年
+            const rec = (M[mk.key] || {})[`${y}-${String(m).padStart(2, "0")}`];
+            if (rec && rec.price) vals.push(rec.price);
+          }
+          out[mk.key][m] = vals;
+        });
+      });
+      return out;
+    }
+
+    // 手取り計算: 市場単価(円/kg) → 1玉あたり手取り(円)
+    function netPerTama(pricePerKg, s) {
+      const grossBox = pricePerKg * s.kg;
+      const netBox = grossBox * (1 - s.fee / 100) - s.ship;
+      return netBox / s.tama;
+    }
+
+    // 入力の許容範囲(手入力の0や極端な値でゼロ除算などを起こさないため)
+    const LIMITS = { tama: [1, 50], kg: [0.5, 20], fee: [0, 50], ship: [0, 5000] };
+
+    function render() {
+      const s = {};
+      for (const k of Object.keys(inputs)) {
+        const v = parseFloat(inputs[k].value);
+        const [lo, hi] = LIMITS[k];
+        s[k] = isNaN(v) ? DEFAULTS[k] : Math.min(hi, Math.max(lo, v));
+      }
+      try { localStorage.setItem(LS_KEY, JSON.stringify(s)); } catch (e) { /* 保存不可でも計算は続行 */ }
+      const prices = seasonPrices();
+
+      // 市場×月の平均手取りを計算し、最良・次点セルを探す
+      let best = null, second = null;
+      const cells = {};
+      MARKETS.forEach((mk) => {
+        MONTHS.forEach(({ m }) => {
+          const vals = prices[mk.key][m];
+          if (!vals.length) return;
+          const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+          const net = netPerTama(avg, s);
+          cells[mk.key + "-" + m] = { avg, net, vals };
+          const cand = { mk, m, avg, net };
+          if (!best || net > best.net) { second = best; best = cand; }
+          else if (!second || net > second.net) { second = cand; }
+        });
+      });
+
+      // 表(セルには平均と年ごとの振れ幅を併記)
+      let html = `<tr><th>市場</th>` +
+        MONTHS.map((mo) => `<th>${mo.label}</th>`).join("") + `</tr>`;
+      MARKETS.forEach((mk) => {
+        html += `<tr><td>${mk.label}</td>`;
+        MONTHS.forEach(({ m }) => {
+          const c = cells[mk.key + "-" + m];
+          if (!c) { html += "<td>-</td>"; return; }
+          const isBest = best && best.mk.key === mk.key && best.m === m;
+          const range = c.vals.length > 1
+            ? `${fmt(Math.min(...c.vals))}〜${fmt(Math.max(...c.vals))}円/kg`
+            : `${fmt(c.avg)}円/kg (1季のみ)`;
+          html += `<td class="${isBest ? "best" : ""}">${fmt(c.net)}円/玉` +
+            `<br><span class="unit">相場 ${range}</span></td>`;
+        });
+        html += `</tr>`;
+      });
+      table.innerHTML = html;
+
+      // おすすめ文
+      const netBoxBest = best ? best.net * s.tama : null;
+      // A品直販の参考手取り: 150円/玉、直販は40〜50玉箱をチルド約1,000円で発送(固定の参考値)
+      const chokuNet = Math.round(150 - 1000 / 45);
+      let reco = "";
+      if (best) {
+        const seasons = cells[best.mk.key + "-" + best.m].vals;
+        // 次点が5%以内なら「ほぼ同水準」として両方示す(税込/税抜の基準差より小さいため)
+        const isClose = second && best.net > 0 && (best.net - second.net) / best.net <= 0.05;
+        reco += `<div class="reco-box">市場に出すなら <span class="big">${best.mk.label}の${best.m}月</span> が過去実績で最有利です` +
+          (isClose ? `(<b>${second.mk.label}の${second.m}月</b> 約${fmt(second.net)}円/玉もほぼ同水準)` : "") + `。<br>` +
+          `手取りの目安: <span class="big">約${fmt(best.net)}円/玉</span>(1箱${s.tama}玉で約${fmt(netBoxBest)}円)<br>` +
+          `<span class="unit">根拠: 過去${seasons.length}シーズンの${best.m}月平均 ${fmt(best.avg)}円/kg × ${s.kg}kg箱 − 手数料${s.fee}% − 経費${fmt(s.ship)}円/箱</span><br>` +
+          `参考: A品直販の手取りは約${fmt(chokuNet)}円/玉(150円/玉、チルド送料按分後)。` +
+          (best.net >= chokuNet
+            ? `<b>${best.mk.label}の${best.m}月は直販と同等以上の水準</b>です。ただし市場の平均単価は全等級込みなので、傷の多い玉は平均より安くなる点にご注意を。`
+            : `市場の最良ケースでも直販より低いため、<b>A品は直販優先・市場は傷物や余剰分</b>という現在の方針が数字の上でも正解です。`) +
+          `</div>`;
+      } else {
+        reco = "データが足りません。シーズンのデータが貯まると表示されます。";
+      }
+      document.getElementById("hantei-reco").innerHTML = reco;
+
+      document.getElementById("hantei-note").textContent =
+        "単価は各市場の公式月次統計(実勢の加重平均)。12月は入荷集中で値崩れしやすく、" +
+        "1月は貯蔵玉が品薄になり単価が戻る傾向があります(貯蔵限界1月末の範囲内)。" +
+        "建値(相場表)は実勢より高く出るため試算には使っていません。" +
+        "経費の初期値240円/箱は「1.5kg箱×5箱まとめ発送で段ボール+送料計1,200円」の按分です。" +
+        "発送方法が変わったら1箱あたりに直して入力してください。" +
+        "市場ごとに税込/税抜の基準が揃っていない可能性があるため、数%の差は誤差の範囲と考えてください。" +
+        "実績はまだ2シーズン分で年による振れが大きく、幅(〜)もあわせて見てください。";
+
+      // シーズン中のライブ計算(10〜1月のみ、大阪の直近実勢)
+      const live = document.getElementById("hantei-live");
+      const daily = D.osaka_daily || {};
+      const dates = Object.keys(daily).sort();
+      const nowM = new Date().getMonth() + 1;
+      if (![10, 11, 12, 1].includes(nowM) || !dates.length) {
+        live.innerHTML = `<p class="note">いまは黄玉のシーズン外です(10月になると、ここに「今日の大阪実勢での手取り」が毎日出ます)。</p>`;
+      } else {
+        const d = dates[dates.length - 1];
+        const mktName = daily[d].honjo ? "本場" : "東部";
+        const mkt = daily[d].honjo || daily[d].tobu;
+        let q = 0, a = 0;
+        (mkt ? mkt.origins : []).forEach((o) => {
+          if (o.qty && o.avg) { q += o.qty; a += o.qty * o.avg; }
+        });
+        if (q) {
+          const p = a / q;
+          live.innerHTML = `<div class="reco-box">${d} の大阪・${mktName}実勢 ${fmt(p)}円/kg → ` +
+            `いま出すと手取り <span class="big">約${fmt(netPerTama(p, s))}円/玉</span></div>`;
+        } else {
+          live.innerHTML = `<p class="note">直近の大阪実勢データがありません。</p>`;
+        }
+      }
+    }
+
+    // 初期化
+    const s0 = loadSettings();
+    for (const k of Object.keys(inputs)) {
+      inputs[k].value = s0[k];
+      inputs[k].addEventListener("input", render);
+    }
+    render();
+  })();
+
   /* ---------- 月次タブ: 最新月テーブル ---------- */
   (function latestTable() {
     const M = D.monthly || {};

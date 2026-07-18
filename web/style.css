@@ -130,6 +130,22 @@ th:first-child, td:first-child { text-align: left; }
   .down { color: #0ca30c; }
 }
 
+.settings { display: flex; flex-wrap: wrap; gap: 12px 20px; margin-top: 8px; }
+.settings label { font-size: 13px; color: var(--ink-2); display: flex; align-items: center; gap: 6px; }
+.settings input {
+  width: 80px;
+  background: var(--page);
+  color: var(--ink);
+  border: 1px solid var(--axis);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.best { background: rgba(42, 120, 214, 0.12); font-weight: 600; }
+.reco-box { font-size: 15px; line-height: 1.8; }
+.reco-box .big { font-size: 18px; font-weight: 700; }
+
 .tooltip {
   position: absolute;
   pointer-events: none;
