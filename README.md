@@ -1,7 +1,9 @@
 # 柚子 市場単価ダッシュボード (yuzu-souba)
 
-東京・大阪・京都・名古屋の中央卸売市場で売買される**ゆずの単価**を集めて、
-ブラウザで見比べられるようにするアプリです。
+東京・大阪・京都の市場で売買される**ゆずの単価**を毎日自動で記録するアプリです。
+
+目的は「世の中の相場の流れを把握する」こと。出荷先選びではなく、
+**直販価格の物差し**として使います(市場出荷は積極的には行わない方針)。
 
 ## 見る (スマホ・パソコン共通)
 
@@ -37,14 +39,14 @@
 | 東京多摩青果(国立の地方卸売市場) | 市況情報PDF ※過去分も残存(2季遡及済み) | 日次(ゆずは11〜12月) |
 | 東京都中央卸売市場(大田・豊洲など全11市場) | 市場統計情報明細データ(Excel) | 月次 |
 | 京都市中央卸売市場第一市場 | 月報青果部 品目別(Excel) | 月次 |
-| 名古屋市中央卸売市場(本場・北部) | 月別取扱高 品目別(Excel) | 月次 |
-| 大阪府中央卸売市場(茨木) | 市場月報 品目別・産地別CSV | 月次 |
 | 大阪中央青果(大阪本場の卸売会社) | 柚子 品目別データPDF(2018年〜) | 旬別(約10日) |
-| 岐阜市中央卸売市場 | 市場月報PDF(産地別・前年同月つき) | 月次 |
-| 三重県地方卸売市場(松阪) | 品目別取扱高PDF | 月次 |
 
 - 卸売会社の「相場表」は建値(卸の掲示価格)で、実勢の取引平均より高めに出ます
 - 大田・板橋・豊洲の相場表は当日分しかサイトに残らないため、毎日の自動取得で蓄積しています
+- 名古屋・岐阜・三重(松阪)・大阪府(茨木)は2026年7月の調査で取得可能と確認済みだが、
+  方針(3都市の記録に絞る)により**取得休止中**。スクリプト(scripts/fetch_nagoya相当・
+  fetch_gifu.py・fetch_mie.py・fetch_osakafu.py)と取得済みデータ(data/)は残してあり、
+  必要になればいつでも再開できます
 
 - 単価はすべて**卸売価格(円/kg)**。小売価格ではありません
 - 東京・大阪は産地別の内訳あり。名古屋は「ゆず類」としての集計
@@ -60,13 +62,11 @@ update.bat / GitHub Actions (毎日8時・12時 JST)
  ├─ scripts/fetch_ota.py          … 大田・東京青果PDF → data/ota_daily.json
  ├─ scripts/fetch_itabashi.py     … 板橋・豊島青果PDF → data/itabashi_daily.json
  ├─ scripts/fetch_tama.py         … 多摩青果PDF → data/tama_daily.json
- ├─ scripts/fetch_monthly.py      … 4都市の月次統計 → data/monthly.json
- ├─ scripts/fetch_osakafu.py      … 大阪府市場月報CSV → data/osakafu_monthly.json
- ├─ scripts/fetch_gifu.py         … 岐阜市場月報PDF → data/gifu_monthly.json
- ├─ scripts/fetch_mie.py          … 三重松阪市場月報PDF → data/mie_monthly.json
+ ├─ scripts/fetch_monthly.py      … 東京・大阪・京都の月次統計 → data/monthly.json
  ├─ scripts/fetch_chusei.py       … 大阪中央青果 旬別PDF → data/chusei_junbetsu.json
  └─ scripts/build_datajs.py       … JSONを web/data.js にまとめる
 web/index.html + app.js           … data.js を読んでグラフ・表を表示 (GitHub Pagesで公開)
+(休止中: fetch_osakafu.py / fetch_gifu.py / fetch_mie.py と monthly.json内の名古屋)
 ```
 
 - 必要なもの: Python 3 と openpyxl (`pip install openpyxl`)

@@ -10,12 +10,14 @@
 <div class="wrap">
   <header>
     <h1>柚子 市場単価ダッシュボード</h1>
-    <p class="sub">東京・大阪・京都・名古屋の中央卸売市場 <span id="updated"></span></p>
+    <p class="sub">東京・大阪・京都の市場相場を毎日記録(直販の値決めの物差し用) <span id="updated"></span></p>
   </header>
+
+  <div id="summary" class="tiles"></div>
 
   <nav class="tabs">
     <button class="tab active" data-tab="daily">日々の単価(大阪・豊洲)</button>
-    <button class="tab" data-tab="monthly">月ごとの比較(4都市)</button>
+    <button class="tab" data-tab="monthly">月ごとの比較(3都市)</button>
   </nav>
 
   <!-- ================= 日次タブ ================= -->
@@ -57,12 +59,6 @@
       <div id="legend-qty" class="legend"></div>
     </div>
     <div class="card">
-      <h2>周辺市場の月平均単価 <span class="unit">(円/kg)</span></h2>
-      <p class="note">大阪府市場(茨木)・岐阜市場・三重松阪市場の月報から。大阪府と岐阜は産地別の内訳もデータに保存しています。</p>
-      <div id="chart-nearby" class="chart"></div>
-      <div id="legend-nearby" class="legend"></div>
-    </div>
-    <div class="card">
       <h2>大阪本場・卸1社の産地別単価 <span class="unit">(円/kg・月計)</span></h2>
       <p class="note">大阪中央青果(大阪本場の卸売会社)の柚子データ。2018年からの長期推移で、徳島・高知・和歌山産の単価差が見られます。</p>
       <div id="chart-chusei" class="chart"></div>
@@ -76,10 +72,9 @@
 
   <footer>
     <p>出所: 東京都中央卸売市場「市場統計情報明細データ」/ 大阪市中央卸売市場「市況情報」/
-       京都市中央卸売市場第一市場「月報」/ 名古屋市中央卸売市場「月別取扱高」/
+       京都市中央卸売市場第一市場「月報」/
        東京シティ青果・東京青果・東京豊島青果・東京多摩青果 各社「市況情報・相場表」/
-       大阪府中央卸売市場「市場月報」/ 大阪中央青果「品目別データ」/
-       岐阜市中央卸売市場「市場月報」/ 三重県地方卸売市場(松阪)「品目別取扱高」。
+       大阪中央青果「品目別データ」。
        単価はいずれも卸売価格(消費税込みの市場もあり)。小売価格ではありません。</p>
   </footer>
 </div>

@@ -13,23 +13,19 @@ import fetch_ota
 import fetch_itabashi
 import fetch_tama
 import fetch_monthly
-import fetch_osakafu
-import fetch_gifu
-import fetch_mie
 import fetch_chusei
 import build_datajs
 
 # (説明, モジュール) の実行リスト。1つ失敗しても他は続行する
+# ※対象は東京・大阪・京都のみ(2026-07 尾野さん方針: 相場観の記録用)。
+#   名古屋・岐阜・三重・大阪府のスクリプトは scripts/ に残してあるが実行しない
 STEPS = [
     ("大阪の日別データ", fetch_osaka_daily),
     ("東京シティ青果(豊洲)の相場表", fetch_tokyo_seika),
     ("東京青果(大田)の相場表", fetch_ota),
     ("東京豊島青果(板橋)の相場表", fetch_itabashi),
     ("東京多摩青果の市況", fetch_tama),
-    ("4都市の月次データ", fetch_monthly),
-    ("大阪府中央卸売市場の月報", fetch_osakafu),
-    ("岐阜市場の月報", fetch_gifu),
-    ("三重(松阪)市場の月報", fetch_mie),
+    ("東京・大阪・京都の月次データ", fetch_monthly),
     ("大阪中央青果の旬別データ", fetch_chusei),
 ]
 

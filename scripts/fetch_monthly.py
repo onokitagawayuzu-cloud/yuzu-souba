@@ -265,8 +265,9 @@ def fetch_nagoya(data):
 
 def main():
     all_data = load_json(OUT)
+    # 名古屋は2026-07に取得停止(fetch_nagoya関数は残置。過去分データはmonthly.jsonに保存済み)
     for key, fn in [("tokyo", fetch_tokyo), ("osaka", fetch_osaka),
-                    ("kyoto", fetch_kyoto), ("nagoya", fetch_nagoya)]:
+                    ("kyoto", fetch_kyoto)]:
         all_data.setdefault(key, {})
         try:
             fn(all_data[key])

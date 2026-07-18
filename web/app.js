@@ -12,7 +12,6 @@
     { key: "tokyo", label: "東京", varName: "--s-tokyo" },
     { key: "osaka", label: "大阪", varName: "--s-osaka" },
     { key: "kyoto", label: "京都", varName: "--s-kyoto" },
-    { key: "nagoya", label: "名古屋", varName: "--s-nagoya" },
   ];
   const OSAKA_MKTS = [
     { key: "honjo", label: "本場", varName: "--s-honjo" },
@@ -148,6 +147,55 @@
       .map((s) => `<span class="key"><span class="swatch" style="background:${css(s.varName)}"></span>${s.label}</span>`)
       .join("");
   }
+
+  /* ---------- いまの相場サマリー ---------- */
+  (function summary() {
+    const el = document.getElementById("summary");
+    if (!el) return;
+    const tiles = [];
+    const tile = (label, value, unit, sub) =>
+      `<div class="tile"><div class="t-label">${label}</div>` +
+      `<div class="t-value">${value}<span class="t-unit"> ${unit}</span></div>` +
+      `<div class="t-sub">${sub}</div></div>`;
+
+    // 大阪・本場の直近実勢(数量重みづけ平均)
+    const daily = D.osaka_daily || {};
+    const dDates = Object.keys(daily).sort();
+    for (let i = dDates.length - 1; i >= 0; i--) {
+      const m = daily[dDates[i]].honjo;
+      if (!m) continue;
+      let q = 0, a = 0;
+      m.origins.forEach((o) => { if (o.qty && o.avg) { q += o.qty; a += o.qty * o.avg; } });
+      if (q) {
+        tiles.push(tile("大阪・本場の実勢平均", fmt(a / q), "円/kg",
+          dDates[i].slice(5).replace("-", "/") + " / " + fmt(m.total_kg) + "kg"));
+        break;
+      }
+    }
+    // 豊洲の建値
+    const seika = D.tokyo_seika_daily || {};
+    const sDates = Object.keys(seika).filter((d) => (seika[d] || []).length).sort();
+    if (sDates.length) {
+      const d = sDates[sDates.length - 1];
+      const vals = seika[d].map((r) => r.price_per_kg).filter(Boolean);
+      if (vals.length) {
+        tiles.push(tile("東京・豊洲の建値", fmt(Math.min(...vals)), "円/kg",
+          d.slice(5).replace("-", "/") + " / " + seika[d][0].origin + "パック品"));
+      }
+    }
+    // 最新月の月平均(東京)
+    const tk = (D.monthly || {}).tokyo || {};
+    const tkMs = Object.keys(tk).sort();
+    if (tkMs.length) {
+      const last = tkMs[tkMs.length - 1];
+      const prev = tk[(parseInt(last.slice(0, 4)) - 1) + last.slice(4)];
+      const yoy = prev && prev.price
+        ? ((tk[last].price - prev.price) / prev.price * 100).toFixed(0) : null;
+      tiles.push(tile("東京の月平均(確定値)", fmt(tk[last].price), "円/kg",
+        last + (yoy != null ? ` / 前年同月${yoy >= 0 ? "+" : ""}${yoy}%` : "")));
+    }
+    el.innerHTML = tiles.join("");
+  })();
 
   /* ---------- 日次タブ: 大阪(実勢) ---------- */
   (function dailyOsaka() {
@@ -285,28 +333,6 @@
     renderLegend(document.getElementById("legend-qty"), qtySeries);
   })();
 
-  /* ---------- 月次タブ: 周辺市場 (大阪府・岐阜・三重) ---------- */
-  (function nearby() {
-    const NEARBY = [
-      { key: "osakafu_monthly", label: "大阪府(茨木)", varName: "--s-osakafu" },
-      { key: "gifu_monthly", label: "岐阜", varName: "--s-gifu" },
-      { key: "mie_monthly", label: "三重(松阪)", varName: "--s-mie" },
-    ];
-    const months = [...new Set(NEARBY.flatMap((s) => Object.keys(D[s.key] || {})))].sort();
-    const el = document.getElementById("chart-nearby");
-    if (!months.length) { el.textContent = "データがありません(まだ蓄積中です)"; return; }
-    const labels = months.map((m) => (m.endsWith("-01") ? m : m.slice(5)));
-    const series = NEARBY.map((s) => ({
-      label: s.label, varName: s.varName,
-      values: months.map((m) => {
-        const rec = (D[s.key] || {})[m];
-        return rec ? rec.price : null;
-      }),
-    }));
-    lineChart(el, series, labels, { unit: "円/kg", tipTitle: (i) => months[i] });
-    renderLegend(document.getElementById("legend-nearby"), series);
-  })();
-
   /* ---------- 月次タブ: 大阪中央青果 産地別 (2018〜) ---------- */
   (function chusei() {
     const C = D.chusei_junbetsu || {};
@@ -335,17 +361,13 @@
     renderLegend(document.getElementById("legend-chusei"), series);
   })();
 
-  /* ---------- 月次タブ: 最新月テーブル (7市場) ---------- */
+  /* ---------- 月次タブ: 最新月テーブル ---------- */
   (function latestTable() {
     const M = D.monthly || {};
     const ROWS = [
       { label: "東京(11市場計)", data: M.tokyo },
       { label: "大阪市(本場+東部)", data: M.osaka },
       { label: "京都(第一市場)", data: M.kyoto },
-      { label: "名古屋(本場+北部)", data: M.nagoya },
-      { label: "大阪府(茨木)", data: D.osakafu_monthly },
-      { label: "岐阜", data: D.gifu_monthly },
-      { label: "三重(松阪)", data: D.mie_monthly },
     ];
     const rows = ROWS.map((r) => {
       const cm = r.data || {};
