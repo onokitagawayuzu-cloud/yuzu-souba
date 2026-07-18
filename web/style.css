@@ -14,6 +14,17 @@
   --s-nagoya: #008300;
   --s-honjo: #2a78d6;
   --s-tobu: #eb6834;
+  --s-toyosu: #eda100;
+  --s-ota: #4a3aa7;
+  --s-itabashi: #e34948;
+  --s-tama: #e87ba4;
+  --s-osakafu: #4a3aa7;
+  --s-gifu: #e34948;
+  --s-mie: #e87ba4;
+  --s-ch-all: #2a78d6;
+  --s-ch-tokushima: #1baf7a;
+  --s-ch-kochi: #eda100;
+  --s-ch-wakayama: #e87ba4;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -32,6 +43,17 @@
     --s-nagoya: #008300;
     --s-honjo: #3987e5;
     --s-tobu: #d95926;
+    --s-toyosu: #c98500;
+    --s-ota: #9085e9;
+    --s-itabashi: #e66767;
+    --s-tama: #d55181;
+    --s-osakafu: #9085e9;
+    --s-gifu: #e66767;
+    --s-mie: #d55181;
+    --s-ch-all: #3987e5;
+    --s-ch-tokushima: #199e70;
+    --s-ch-kochi: #c98500;
+    --s-ch-wakayama: #d55181;
   }
 }
 

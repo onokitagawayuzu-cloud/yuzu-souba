@@ -21,15 +21,25 @@
   <!-- ================= 日次タブ ================= -->
   <section id="tab-daily" class="panel active">
     <div class="card">
-      <h2>ゆず 日別単価 <span class="unit">(円/kg)</span></h2>
-      <p class="note">大阪(本場・東部)は産地別データを数量で重みづけした平均。東京・豊洲は東京シティ青果の相場表(高知産などのパック品、kg換算)。
-      豊洲は秀品パックの建値のため大阪の平均より高く出ます。いまの時期はハウス栽培の青ゆずが中心です。</p>
+      <h2>大阪市場 日別平均単価(実勢) <span class="unit">(円/kg)</span></h2>
+      <p class="note">大阪市中央卸売市場(本場・東部)の産地別データを数量で重みづけした実際の取引平均。いまの時期はハウス栽培の青ゆずが中心です。</p>
       <div id="chart-daily" class="chart"></div>
       <div id="legend-daily" class="legend"></div>
     </div>
     <div class="card">
-      <h2>直近の内訳 <span class="unit">(産地別)</span></h2>
+      <h2>東京の卸4社 相場表(建値) <span class="unit">(円/kg換算)</span></h2>
+      <p class="note">豊洲(東京シティ青果)・大田(東京青果)・板橋(東京豊島青果)・多摩(東京多摩青果)の相場表をkg換算した値。
+      相場表は「今日はこの値段で売ります」という卸の掲示価格(建値)なので、実勢平均より高めに出ます。柚子の掲載は冬が中心の市場もあります。</p>
+      <div id="chart-tatene" class="chart"></div>
+      <div id="legend-tatene" class="legend"></div>
+    </div>
+    <div class="card">
+      <h2>大阪の直近内訳 <span class="unit">(産地別)</span></h2>
       <div class="tablewrap"><table id="table-daily"></table></div>
+    </div>
+    <div class="card">
+      <h2>相場表の直近値 <span class="unit">(建値)</span></h2>
+      <div class="tablewrap"><table id="table-tatene"></table></div>
     </div>
   </section>
 
@@ -47,6 +57,18 @@
       <div id="legend-qty" class="legend"></div>
     </div>
     <div class="card">
+      <h2>周辺市場の月平均単価 <span class="unit">(円/kg)</span></h2>
+      <p class="note">大阪府市場(茨木)・岐阜市場・三重松阪市場の月報から。大阪府と岐阜は産地別の内訳もデータに保存しています。</p>
+      <div id="chart-nearby" class="chart"></div>
+      <div id="legend-nearby" class="legend"></div>
+    </div>
+    <div class="card">
+      <h2>大阪本場・卸1社の産地別単価 <span class="unit">(円/kg・月計)</span></h2>
+      <p class="note">大阪中央青果(大阪本場の卸売会社)の柚子データ。2018年からの長期推移で、徳島・高知・和歌山産の単価差が見られます。</p>
+      <div id="chart-chusei" class="chart"></div>
+      <div id="legend-chusei" class="legend"></div>
+    </div>
+    <div class="card">
       <h2>最新月の状況</h2>
       <div class="tablewrap"><table id="table-monthly"></table></div>
     </div>
@@ -54,8 +76,11 @@
 
   <footer>
     <p>出所: 東京都中央卸売市場「市場統計情報明細データ」/ 大阪市中央卸売市場「市況情報」/
-       京都市中央卸売市場第一市場「月報」/ 名古屋市中央卸売市場「月別取扱高」。
-       単価はいずれも卸売価格(消費税込みの市場もあり)。</p>
+       京都市中央卸売市場第一市場「月報」/ 名古屋市中央卸売市場「月別取扱高」/
+       東京シティ青果・東京青果・東京豊島青果・東京多摩青果 各社「市況情報・相場表」/
+       大阪府中央卸売市場「市場月報」/ 大阪中央青果「品目別データ」/
+       岐阜市中央卸売市場「市場月報」/ 三重県地方卸売市場(松阪)「品目別取扱高」。
+       単価はいずれも卸売価格(消費税込みの市場もあり)。小売価格ではありません。</p>
   </footer>
 </div>
 <script src="data.js"></script>

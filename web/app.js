@@ -37,7 +37,7 @@
     const W = 900, H = 320, padL = 56, padR = 16, padT = 14, padB = 34;
     const iw = W - padL - padR, ih = H - padT - padB;
     const all = series.flatMap((s) => s.values.filter((v) => v != null));
-    if (!all.length) { el.textContent = "データがありません"; return; }
+    if (!all.length) { el.textContent = "データがありません(まだ蓄積中です)"; return; }
     const ymax = Math.max(...all) * 1.08;
     const ymin = 0;
     const n = xLabels.length;
@@ -97,10 +97,10 @@
         if (v == null) return;
         const c = document.createElementNS(ns, "circle");
         c.setAttribute("cx", X(i)); c.setAttribute("cy", Y(v));
-        c.setAttribute("r", "3");
+        c.setAttribute("r", n > 120 ? "1.5" : "3");
         c.setAttribute("fill", color);
         c.setAttribute("stroke", css("--surface"));
-        c.setAttribute("stroke-width", "1.5");
+        c.setAttribute("stroke-width", n > 120 ? "0.5" : "1.5");
         svg.appendChild(c);
       });
     });
@@ -149,11 +149,10 @@
       .join("");
   }
 
-  /* ---------- 日次タブ(大阪+豊洲) ---------- */
-  (function daily() {
+  /* ---------- 日次タブ: 大阪(実勢) ---------- */
+  (function dailyOsaka() {
     const daily = D.osaka_daily || {};
-    const seika = D.tokyo_seika_daily || {};
-    const dates = [...new Set([...Object.keys(daily), ...Object.keys(seika)])].sort();
+    const dates = Object.keys(daily).sort();
     if (!dates.length) return;
 
     const wavg = (m) => {
@@ -166,18 +165,9 @@
     };
 
     const series = OSAKA_MKTS.map((mk) => ({
-      label: "大阪・" + mk.label, varName: mk.varName,
-      values: dates.map((d) => wavg((daily[d] || {})[mk.key])),
+      label: mk.label, varName: mk.varName,
+      values: dates.map((d) => wavg(daily[d][mk.key])),
     }));
-    series.push({
-      label: "東京・豊洲(シティ青果)", varName: "--s-kyoto",
-      values: dates.map((d) => {
-        const rows = seika[d];
-        if (!rows || !rows.length) return null;
-        const vals = rows.map((r) => r.price_per_kg).filter((v) => v != null);
-        return vals.length ? Math.min(...vals) : null;
-      }),
-    });
     const labels = dates.map((d) => d.slice(5).replace("-", "/"));
     lineChart(document.getElementById("chart-daily"), series, labels, {
       unit: "円/kg",
@@ -188,19 +178,12 @@
     // 直近テーブル(新しい順に15日分)
     const rows = [];
     dates.slice(-15).reverse().forEach((d) => {
-      (seika[d] || []).forEach((r, i) => {
-        rows.push(
-          `<tr><td>${i === 0 ? d + " 豊洲" : ""}</td>` +
-          `<td>${r.origin}(${r.spec})</td><td>${r.unit_kg} kg入</td>` +
-          `<td>-</td><td>-</td><td><b>${fmt(r.price_per_kg)}</b></td></tr>`
-        );
-      });
       OSAKA_MKTS.forEach((mk) => {
-        const m = (daily[d] || {})[mk.key];
+        const m = daily[d][mk.key];
         if (!m) return;
         m.origins.forEach((o, i) => {
           rows.push(
-            `<tr><td>${i === 0 ? d + " 大阪" + mk.label : ""}</td>` +
+            `<tr><td>${i === 0 ? d + " " + mk.label : ""}</td>` +
             `<td>${o.name}</td><td>${fmt(o.qty)} kg</td>` +
             `<td>${fmt(o.seri && o.seri.high)}</td><td>${fmt(o.aitai && o.aitai.high)}</td>` +
             `<td><b>${fmt(o.avg)}</b></td></tr>`
@@ -213,7 +196,70 @@
       rows.join("");
   })();
 
-  /* ---------- 月次タブ ---------- */
+  /* ---------- 日次タブ: 東京4社の相場表(建値) ---------- */
+  (function dailyTatene() {
+    const seika = D.tokyo_seika_daily || {};
+    const ota = D.ota_daily || {};
+    const itabashi = D.itabashi_daily || {};
+    const tama = D.tama_daily || {};
+
+    // 豊洲: 複数行があれば price_per_kg の最小値を代表に
+    const seikaVal = (d) => {
+      const rows = seika[d];
+      if (!rows || !rows.length) return null;
+      const vals = rows.map((r) => r.price_per_kg).filter((v) => v != null);
+      return vals.length ? Math.min(...vals) : null;
+    };
+
+    const SOURCES = [
+      { label: "豊洲(シティ青果)", varName: "--s-toyosu", data: seika, val: seikaVal },
+      { label: "大田(東京青果)", varName: "--s-ota", data: ota, val: (d) => ota[d] && ota[d].high_per_kg },
+      { label: "板橋(豊島青果)", varName: "--s-itabashi", data: itabashi, val: (d) => itabashi[d] && itabashi[d].high_per_kg },
+      { label: "多摩(多摩青果)", varName: "--s-tama", data: tama, val: (d) => tama[d] && tama[d].high_per_kg },
+    ];
+    const dates = [...new Set(SOURCES.flatMap((s) => Object.keys(s.data)))].sort();
+    if (!dates.length) return;
+
+    const series = SOURCES.map((s) => ({
+      label: s.label, varName: s.varName,
+      values: dates.map((d) => s.val(d) || null),
+    }));
+    // シーズンをまたぐので年入りラベル(例: 25/12/26)
+    const labels = dates.map((d) => d.slice(2).replace(/-/g, "/"));
+    lineChart(document.getElementById("chart-tatene"), series, labels, {
+      unit: "円/kg", tipTitle: (i) => dates[i],
+    });
+    renderLegend(document.getElementById("legend-tatene"), series);
+
+    // 相場表テーブル(新しい順に10日分)
+    const rows = [];
+    dates.slice(-10).reverse().forEach((d) => {
+      (seika[d] || []).forEach((r) => {
+        rows.push(`<tr><td>${d} 豊洲</td><td>${r.origin} ${r.spec || ""}</td>` +
+          `<td>${r.unit_kg}kg入</td><td>${fmt(r.price)}</td><td><b>${fmt(r.price_per_kg)}</b></td></tr>`);
+      });
+      if (ota[d]) {
+        const r = ota[d];
+        rows.push(`<tr><td>${d} 大田</td><td>${r.origin}</td>` +
+          `<td>${r.unit_kg}kg入</td><td>${fmt(r.high)}</td><td><b>${fmt(r.high_per_kg)}</b></td></tr>`);
+      }
+      if (itabashi[d]) {
+        const r = itabashi[d];
+        rows.push(`<tr><td>${d} 板橋</td><td>${r.origin} ${r.grade || ""}${r.pkg || ""}</td>` +
+          `<td>${r.unit_kg}kg入</td><td>${fmt(r.high)}</td><td><b>${fmt(r.high_per_kg)}</b></td></tr>`);
+      }
+      if (tama[d]) {
+        const r = tama[d];
+        rows.push(`<tr><td>${d} 多摩</td><td>${r.origin} ${r.grade || ""}</td>` +
+          `<td>${r.unit_kg}kg入</td><td>${fmt(r.high)}</td><td><b>${fmt(r.high_per_kg)}</b></td></tr>`);
+      }
+    });
+    document.getElementById("table-tatene").innerHTML =
+      `<tr><th>日付・市場</th><th>産地・規格</th><th>荷姿</th><th>建値(円/箱)</th><th>kg換算(円/kg)</th></tr>` +
+      rows.join("");
+  })();
+
+  /* ---------- 月次タブ: 4都市 ---------- */
   (function monthly() {
     const M = D.monthly || {};
     const months = [...new Set(CITIES.flatMap((c) => Object.keys(M[c.key] || {})))].sort();
@@ -237,23 +283,86 @@
       unit: "kg", tipTitle: (i) => months[i],
     });
     renderLegend(document.getElementById("legend-qty"), qtySeries);
+  })();
 
-    // 最新月テーブル(都市ごとに最新の月+前年同月比)
-    const rows = CITIES.map((c) => {
-      const cm = M[c.key] || {};
+  /* ---------- 月次タブ: 周辺市場 (大阪府・岐阜・三重) ---------- */
+  (function nearby() {
+    const NEARBY = [
+      { key: "osakafu_monthly", label: "大阪府(茨木)", varName: "--s-osakafu" },
+      { key: "gifu_monthly", label: "岐阜", varName: "--s-gifu" },
+      { key: "mie_monthly", label: "三重(松阪)", varName: "--s-mie" },
+    ];
+    const months = [...new Set(NEARBY.flatMap((s) => Object.keys(D[s.key] || {})))].sort();
+    const el = document.getElementById("chart-nearby");
+    if (!months.length) { el.textContent = "データがありません(まだ蓄積中です)"; return; }
+    const labels = months.map((m) => (m.endsWith("-01") ? m : m.slice(5)));
+    const series = NEARBY.map((s) => ({
+      label: s.label, varName: s.varName,
+      values: months.map((m) => {
+        const rec = (D[s.key] || {})[m];
+        return rec ? rec.price : null;
+      }),
+    }));
+    lineChart(el, series, labels, { unit: "円/kg", tipTitle: (i) => months[i] });
+    renderLegend(document.getElementById("legend-nearby"), series);
+  })();
+
+  /* ---------- 月次タブ: 大阪中央青果 産地別 (2018〜) ---------- */
+  (function chusei() {
+    const C = D.chusei_junbetsu || {};
+    const overall = C.overall || {};
+    const prefs = C.prefectures || {};
+    const el = document.getElementById("chart-chusei");
+    const months = [...new Set([
+      ...Object.keys(overall),
+      ...Object.keys(prefs).flatMap((p) => Object.keys(prefs[p] || {})),
+    ])].sort();
+    if (!months.length) { el.textContent = "データがありません(まだ蓄積中です)"; return; }
+    const labels = months.slice();  // 長期系列なので常に YYYY-MM 表記
+
+    const total = (rec) => (rec && rec.total ? rec.total.price : null);
+    const series = [
+      { label: "全体平均", varName: "--s-ch-all",
+        values: months.map((m) => total(overall[m])) },
+      { label: "徳島産", varName: "--s-ch-tokushima",
+        values: months.map((m) => total((prefs["徳島"] || {})[m])) },
+      { label: "高知産", varName: "--s-ch-kochi",
+        values: months.map((m) => total((prefs["高知"] || {})[m])) },
+      { label: "和歌山産", varName: "--s-ch-wakayama",
+        values: months.map((m) => total((prefs["和歌山"] || {})[m])) },
+    ];
+    lineChart(el, series, labels, { unit: "円/kg", tipTitle: (i) => months[i] });
+    renderLegend(document.getElementById("legend-chusei"), series);
+  })();
+
+  /* ---------- 月次タブ: 最新月テーブル (7市場) ---------- */
+  (function latestTable() {
+    const M = D.monthly || {};
+    const ROWS = [
+      { label: "東京(11市場計)", data: M.tokyo },
+      { label: "大阪市(本場+東部)", data: M.osaka },
+      { label: "京都(第一市場)", data: M.kyoto },
+      { label: "名古屋(本場+北部)", data: M.nagoya },
+      { label: "大阪府(茨木)", data: D.osakafu_monthly },
+      { label: "岐阜", data: D.gifu_monthly },
+      { label: "三重(松阪)", data: D.mie_monthly },
+    ];
+    const rows = ROWS.map((r) => {
+      const cm = r.data || {};
       const ms = Object.keys(cm).sort();
       if (!ms.length) return "";
       const last = ms[ms.length - 1];
       const cur = cm[last];
       const prevYm = (parseInt(last.slice(0, 4)) - 1) + last.slice(4);
-      const prev = cm[prevYm];
+      let prevPrice = cm[prevYm] && cm[prevYm].price;
+      if (prevPrice == null && cur.prev_year) prevPrice = cur.prev_year.price;
       let yoy = "-";
-      if (prev && prev.price) {
-        const pct = ((cur.price - prev.price) / prev.price) * 100;
+      if (prevPrice) {
+        const pct = ((cur.price - prevPrice) / prevPrice) * 100;
         const cls = pct >= 0 ? "up" : "down";
         yoy = `<span class="${cls}">${pct >= 0 ? "+" : ""}${pct.toFixed(1)}%</span>`;
       }
-      return `<tr><td>${c.label}</td><td>${last}</td><td>${fmt(cur.qty)} kg</td>` +
+      return `<tr><td>${r.label}</td><td>${last}</td><td>${fmt(cur.qty)} kg</td>` +
              `<td><b>${fmt(cur.price)}</b> 円/kg</td><td>${yoy}</td></tr>`;
     });
     document.getElementById("table-monthly").innerHTML =
