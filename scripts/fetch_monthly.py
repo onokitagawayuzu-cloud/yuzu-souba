@@ -200,72 +200,9 @@ def fetch_kyoto(data):
                 print(f"  京都 {ym}: {qty:,}kg {data[ym]['price']}円/kg")
 
 
-# ---------------------------------------------------------------- 名古屋
-NAGOYA_YEAR_PAGES = {
-    2024: "https://www.city.nagoya.jp/kurashi/shisetsu/1037173/1016131/1034822/1016141/1034825/1016175/index.html",
-    2025: "https://www.city.nagoya.jp/kurashi/shisetsu/1037173/1016131/1034822/1016141/1034825/1034826/index.html",
-    2026: "https://www.city.nagoya.jp/kurashi/shisetsu/1037173/1016131/1034822/1016141/1034825/1046051/index.html",
-}
-WAREKI = {2024: "令和6年", 2025: "令和7年", 2026: "令和8年"}
-
-
-def fetch_nagoya(data):
-    for year, ypage in NAGOYA_YEAR_PAGES.items():
-        need = [ym for ym in month_range()
-                if ym.startswith(str(year)) and not data.get(ym, {}).get("qty")]
-        if not need:
-            continue
-        html = http_get_text(ypage, encoding="utf-8")
-        if html is None:
-            continue
-        month_links = {}
-        wareki = WAREKI[year]
-        for m in re.finditer(
-                r'<a[^>]*href="([^"]+)"[^>]*>\s*' + wareki + r'(\d{1,2})月[^<]*</a>', html):
-            month_links[int(m.group(2))] = m.group(1)
-        for ym in need:
-            mon = int(ym.split("-")[1])
-            if mon not in month_links:
-                continue
-            murl = month_links[mon]
-            if not murl.startswith("http"):
-                murl = "https://www.city.nagoya.jp/" + murl.lstrip("./").replace("../", "")
-            mhtml = http_get_text(murl, encoding="utf-8")
-            if mhtml is None:
-                continue
-            fm = re.search(r'href="([^"]*_sei_hinmokbet\.xlsx?)"', mhtml)
-            if not fm:
-                continue
-            furl = fm.group(1)
-            if not furl.startswith("http"):
-                furl = "https://www.city.nagoya.jp/" + furl.lstrip("./").replace("../", "")
-            b = http_get(furl)
-            if b is None:
-                continue
-            wb, tmpname = load_xlsx_from_bytes(b)
-            found = None
-            for ws in wb.worksheets:
-                if "野菜" not in ws.title:
-                    continue
-                for row in ws.iter_rows(values_only=True):
-                    if row and any(isinstance(c, str) and c.strip() == "ゆず類" for c in row):
-                        vals = [c for c in row if isinstance(c, (int, float))]
-                        if len(vals) >= 3:
-                            found = vals[:3]  # 合計の数量, 金額, 平均単価
-                            break
-                if found:
-                    break
-            wb.close()
-            Path(tmpname).unlink(missing_ok=True)
-            if found:
-                qty, amount, price = found
-                data[ym] = {"qty": qty, "amount": amount, "price": round(price)}
-                print(f"  名古屋 {ym}: {qty:,}kg {data[ym]['price']}円/kg")
-
-
 def main():
     all_data = load_json(OUT)
-    # 名古屋は2026-07に取得停止(fetch_nagoya関数は残置。過去分データはmonthly.jsonに保存済み)
+    # 対象は東京・大阪・京都のみ(名古屋は2026-07に尾野さんの指示でデータごと削除済み)
     for key, fn in [("tokyo", fetch_tokyo), ("osaka", fetch_osaka),
                     ("kyoto", fetch_kyoto)]:
         all_data.setdefault(key, {})

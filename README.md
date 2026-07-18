@@ -43,10 +43,9 @@
 
 - 卸売会社の「相場表」は建値(卸の掲示価格)で、実勢の取引平均より高めに出ます
 - 大田・板橋・豊洲の相場表は当日分しかサイトに残らないため、毎日の自動取得で蓄積しています
-- 名古屋・岐阜・三重(松阪)・大阪府(茨木)は2026年7月の調査で取得可能と確認済みだが、
-  方針(3都市の記録に絞る)により**取得休止中**。スクリプト(scripts/fetch_nagoya相当・
-  fetch_gifu.py・fetch_mie.py・fetch_osakafu.py)と取得済みデータ(data/)は残してあり、
-  必要になればいつでも再開できます
+- 名古屋・岐阜・三重(松阪)・大阪府(茨木)は2026年7月の調査で取得可能と確認したが、
+  方針(3都市の記録に絞る)により**データ・スクリプトとも削除済み**。
+  必要になれば当時の調査記録(gitの履歴)から再構築できます
 
 - 単価はすべて**卸売価格(円/kg)**。小売価格ではありません
 - 東京・大阪は産地別の内訳あり。名古屋は「ゆず類」としての集計
@@ -66,7 +65,6 @@ update.bat / GitHub Actions (毎日8時・12時 JST)
  ├─ scripts/fetch_chusei.py       … 大阪中央青果 旬別PDF → data/chusei_junbetsu.json
  └─ scripts/build_datajs.py       … JSONを web/data.js にまとめる
 web/index.html + app.js           … data.js を読んでグラフ・表を表示 (GitHub Pagesで公開)
-(休止中: fetch_osakafu.py / fetch_gifu.py / fetch_mie.py と monthly.json内の名古屋)
 ```
 
 - 必要なもの: Python 3 と openpyxl (`pip install openpyxl`)
