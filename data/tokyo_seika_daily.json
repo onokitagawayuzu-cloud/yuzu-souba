@@ -28,5 +28,15 @@
    "trend": null,
    "unit_kg": 0.2
   }
+ ],
+ "2026-07-23": [
+  {
+   "origin": "高知県",
+   "price": 1080,
+   "price_per_kg": 5400,
+   "spec": "PKA2L",
+   "trend": null,
+   "unit_kg": 0.2
+  }
  ]
 }
