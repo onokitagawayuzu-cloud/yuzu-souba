@@ -190,5 +190,15 @@
    "trend": "flat",
    "unit_kg": 1.5
   }
+ ],
+ "2026-10-10": [
+  {
+   "origin": "高知県",
+   "price": 2700,
+   "price_per_kg": 1800,
+   "spec": "DB丸A2L",
+   "trend": "flat",
+   "unit_kg": 1.5
+  }
  ]
 }
