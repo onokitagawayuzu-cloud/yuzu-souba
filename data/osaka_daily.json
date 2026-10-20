@@ -7705,5 +7705,77 @@
    ],
    "total_kg": 429
   }
+ },
+ "2026-10-20": {
+  "honjo": {
+   "origins": [
+    {
+     "aitai": {
+      "high": 1296,
+      "low": 432,
+      "mid": 756
+     },
+     "avg": 1036,
+     "name": "徳島県",
+     "qty": 408,
+     "seri": {
+      "high": 1728,
+      "low": 756,
+      "mid": 1080
+     }
+    },
+    {
+     "aitai": {
+      "high": null,
+      "low": null,
+      "mid": null
+     },
+     "avg": 108,
+     "name": "高知県",
+     "qty": 84,
+     "seri": {
+      "high": null,
+      "low": null,
+      "mid": 108
+     }
+    }
+   ],
+   "total_kg": 492
+  },
+  "tobu": {
+   "origins": [
+    {
+     "aitai": {
+      "high": 1080,
+      "low": 389,
+      "mid": 445
+     },
+     "avg": 580,
+     "name": "徳島県",
+     "qty": 433,
+     "seri": {
+      "high": null,
+      "low": null,
+      "mid": null
+     }
+    },
+    {
+     "aitai": {
+      "high": null,
+      "low": null,
+      "mid": 1944
+     },
+     "avg": 1944,
+     "name": "高知県",
+     "qty": 23,
+     "seri": {
+      "high": null,
+      "low": null,
+      "mid": null
+     }
+    }
+   ],
+   "total_kg": 456
+  }
  }
 }
