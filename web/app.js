@@ -244,11 +244,10 @@
       rows.join("");
   })();
 
-  /* ---------- 日次タブ: 東京4社の相場表(建値) ---------- */
+  /* ---------- 日次タブ: 東京3社の相場表(建値) ---------- */
   (function dailyTatene() {
     const seika = D.tokyo_seika_daily || {};
     const ota = D.ota_daily || {};
-    const itabashi = D.itabashi_daily || {};
     const tama = D.tama_daily || {};
 
     // 豊洲: 複数行があれば price_per_kg の最小値を代表に
@@ -262,7 +261,6 @@
     const SOURCES = [
       { label: "豊洲(シティ青果)", varName: "--s-toyosu", data: seika, val: seikaVal },
       { label: "大田(東京青果)", varName: "--s-ota", data: ota, val: (d) => ota[d] && ota[d].high_per_kg },
-      { label: "板橋(豊島青果)", varName: "--s-itabashi", data: itabashi, val: (d) => itabashi[d] && itabashi[d].high_per_kg },
       { label: "多摩(多摩青果)", varName: "--s-tama", data: tama, val: (d) => tama[d] && tama[d].high_per_kg },
     ];
     const dates = [...new Set(SOURCES.flatMap((s) => Object.keys(s.data)))].sort();
@@ -289,11 +287,6 @@
       if (ota[d]) {
         const r = ota[d];
         rows.push(`<tr><td>${d} 大田</td><td>${r.origin}</td>` +
-          `<td>${r.unit_kg}kg入</td><td>${fmt(r.high)}</td><td><b>${fmt(r.high_per_kg)}</b></td></tr>`);
-      }
-      if (itabashi[d]) {
-        const r = itabashi[d];
-        rows.push(`<tr><td>${d} 板橋</td><td>${r.origin} ${r.grade || ""}${r.pkg || ""}</td>` +
           `<td>${r.unit_kg}kg入</td><td>${fmt(r.high)}</td><td><b>${fmt(r.high_per_kg)}</b></td></tr>`);
       }
       if (tama[d]) {

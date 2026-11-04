@@ -201,7 +201,9 @@ def fetch_kyoto(data):
 
 
 def main():
+    """都市ごとに取得し、失敗した都市を {都市: エラー文} で返す。"""
     all_data = load_json(OUT)
+    failed = {}
     # 対象は東京・大阪・京都のみ(名古屋は2026-07に尾野さんの指示でデータごと削除済み)
     for key, fn in [("tokyo", fetch_tokyo), ("osaka", fetch_osaka),
                     ("kyoto", fetch_kyoto)]:
@@ -210,8 +212,10 @@ def main():
             fn(all_data[key])
         except Exception as e:
             print(f"  !! {key} の取得でエラー: {e}")
+            failed[key] = str(e)
         save_json(OUT, all_data)
     print("月次データ更新完了")
+    return failed
 
 
 if __name__ == "__main__":

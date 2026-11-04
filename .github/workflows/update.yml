@@ -18,6 +18,8 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
+    outputs:
+      stopped: ${{ steps.fetch.outputs.stopped }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -25,7 +27,8 @@ jobs:
           python-version: "3.12"
       - run: pip install -r requirements.txt
       - name: データ取得
-        run: python scripts/update_all.py --no-open
+        id: fetch
+        run: python scripts/update_all.py
       - name: データをコミット
         run: |
           git config user.name "yuzu-souba-bot"
@@ -46,3 +49,18 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  # 同じ取得先が4回(2日)続けて失敗したら、このジョブを失敗にして GitHub からメールで知らせる。
+  # データの記録とサイトの公開は済ませてから行う(他の市場の更新は止めない)
+  notify:
+    name: 取り込み停止の知らせ
+    needs: [update, deploy]
+    if: needs.update.outputs.stopped != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: 止まった取得先を知らせる
+        env:
+          STOPPED: ${{ needs.update.outputs.stopped }}
+        run: |
+          echo "::error title=柚子の相場の取り込みが止まりました::${STOPPED}(2日続けて取得に失敗。ほかの市場のデータとサイトは更新済み)"
+          exit 1
