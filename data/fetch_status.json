@@ -2,56 +2,56 @@
  "chusei": {
   "fail_streak": 0,
   "last_error": null,
-  "last_ok": null,
+  "last_ok": "2026-11-04 22:28",
   "name": "大阪中央青果の旬別データ",
   "notified": false
  },
  "monthly_kyoto": {
   "fail_streak": 0,
   "last_error": null,
-  "last_ok": null,
+  "last_ok": "2026-11-04 22:28",
   "name": "京都の月次データ",
   "notified": false
  },
  "monthly_osaka": {
-  "fail_streak": 25,
+  "fail_streak": 26,
   "last_error": "HTTP Error 503: Service Unavailable",
   "last_ok": "2026-10-23 10:12",
   "name": "大阪の月次データ",
-  "notified": false
+  "notified": true
  },
  "monthly_tokyo": {
   "fail_streak": 0,
   "last_error": null,
-  "last_ok": null,
+  "last_ok": "2026-11-04 22:28",
   "name": "東京の月次データ",
   "notified": false
  },
  "osaka_daily": {
-  "fail_streak": 25,
+  "fail_streak": 26,
   "last_error": "HTTP Error 503: Service Unavailable",
   "last_ok": "2026-10-23 10:12",
   "name": "大阪の日別データ",
-  "notified": false
+  "notified": true
  },
  "ota": {
   "fail_streak": 0,
   "last_error": null,
-  "last_ok": null,
+  "last_ok": "2026-11-04 22:28",
   "name": "東京青果(大田)の相場表",
   "notified": false
  },
  "tama": {
   "fail_streak": 0,
   "last_error": null,
-  "last_ok": null,
+  "last_ok": "2026-11-04 22:28",
   "name": "東京多摩青果の市況",
   "notified": false
  },
  "tokyo_seika": {
   "fail_streak": 0,
   "last_error": null,
-  "last_ok": null,
+  "last_ok": "2026-11-04 22:28",
   "name": "東京シティ青果(豊洲)の相場表",
   "notified": false
  }
