@@ -52,5 +52,14 @@
   "origin": "各地",
   "trend": "#",
   "unit_kg": 1.5
+ },
+ "2026-11-12": {
+  "high": 3780,
+  "high_per_kg": 2520,
+  "low": null,
+  "mid": null,
+  "origin": "各地",
+  "trend": null,
+  "unit_kg": 1.5
  }
 }
