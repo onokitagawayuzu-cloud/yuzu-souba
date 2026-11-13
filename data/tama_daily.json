@@ -878,5 +878,15 @@
   "mid": null,
   "origin": "高知",
   "unit_kg": 1.5
+ },
+ "2026-11-13": {
+  "grade": "2L",
+  "high": null,
+  "high_per_kg": null,
+  "low": null,
+  "low_per_kg": null,
+  "mid": null,
+  "origin": "高知",
+  "unit_kg": 1.5
  }
 }
